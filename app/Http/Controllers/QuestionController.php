@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Model\Question;
 use Illuminate\Http\Request;
-use App\Http\Resources\QuestionResource;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Resources\QuestionResource;
 
 class QuestionController extends Controller
 {
@@ -16,9 +16,9 @@ class QuestionController extends Controller
      */
     public function __construct()
     {
-        //$this->middleware('auth:api', ['except' => ['login', 'signup']]);
-        $this->middleware('JWT');
+        $this->middleware('JWT', ['except' => ['index','show']]);
     }
+    
     /**
      * Display a listing of the resource.
      *
@@ -29,8 +29,6 @@ class QuestionController extends Controller
         return QuestionResource::collection(Question::latest()->get());
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      *
@@ -39,9 +37,8 @@ class QuestionController extends Controller
      */
     public function store(Request $request)
     {
-        //auth()->user()->question()->create($request->all());
-        Question::create($request->all());//verify mass assignement
-        return response('Created', Response::HTTP_CREATED);
+        $question = auth()->user()->question()->create($request->all());
+        return response(new QuestionResource($question), Response::HTTP_CREATED);
     }
 
     /**
@@ -54,8 +51,6 @@ class QuestionController extends Controller
     {
         return new QuestionResource($question);
     }
-
-
 
     /**
      * Update the specified resource in storage.

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Model\Reply;
-use App\Model\Question;
 use Illuminate\Http\Request;
-use App\Http\Resources\ReplyResource;
+use App\Model\Question;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Resources\ReplyResource;
+use App\Notifications\NewReplyNotification;
+use App\Events\DeleteReplyEvent;
 
 class ReplyController extends Controller
 {
@@ -17,8 +19,7 @@ class ReplyController extends Controller
      */
     public function __construct()
     {
-        //$this->middleware('auth:api', ['except' => ['login', 'signup']]);
-        $this->middleware('JWT', ['except' => ['index', 'show']]);
+        $this->middleware('JWT', ['except' => ['index','show']]);
     }
 
     /**
@@ -29,8 +30,8 @@ class ReplyController extends Controller
     public function index(Question $question)
     {
         return ReplyResource::collection($question->replies);
-        //return Reply::latest()->get();
     }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -40,7 +41,12 @@ class ReplyController extends Controller
     public function store(Question $question, Request $request)
     {
         $reply = $question->replies()->create($request->all());
-        return response(['reply'=>new ReplyResource($reply)], Response::HTTP_CREATED);
+        $user = $question->user;
+        if ($reply->user_id !== $question->user_id) {
+            $user->notify(new NewReplyNotification($reply));
+        }
+        
+        return response(['reply' => new ReplyResource($reply)], Response::HTTP_CREATED);
     }
 
     /**
@@ -76,6 +82,7 @@ class ReplyController extends Controller
     public function destroy(Question $question, Reply $reply)
     {
         $reply->delete();
+        broadcast(new DeleteReplyEvent($reply->id))->toOthers();
         return response(null, Response::HTTP_NO_CONTENT);
     }
 }

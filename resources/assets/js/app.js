@@ -20,7 +20,7 @@ Vue.use(Vuetify)
 
 //Vue.component('app-home', require('./components/AppHome.vue'));
 //Vue.component('app-home', require('./components/ExampleComponent.vue'));
-Vue.component('AConfig', require('./components/AConfig.vue'));
+Vue.component('AppHome', require('./components/AppHome.vue'));
 import router from './Router/router.js'
 const app = new Vue({
     el: '#app',

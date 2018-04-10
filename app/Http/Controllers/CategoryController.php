@@ -4,22 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Model\Category;
 use Illuminate\Http\Request;
-use App\Http\Resources\CategoryResource;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Resources\CategoryResource;
 
 class CategoryController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Create a new AuthController instance.
      *
-     * @return \Illuminate\Http\Response
+     * @return void
      */
-    public function index(Question $question)
+    public function __construct()
     {
-        return ReplyResource::collection($question->replies);
-        //return Reply::latest()->get();
+        $this->middleware('JWT', ['except' => ['index','show']]);
     }
 
+    
     /**
      * Display a listing of the resource.
      *
@@ -30,7 +30,6 @@ class CategoryController extends Controller
         return CategoryResource::collection(category::latest()->get());
     }
 
-
     /**
      * Store a newly created resource in storage.
      *
@@ -39,12 +38,12 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //Category::create($request->all());
+        // Category::create($request->all());
         $category = new Category;
         $category->name = $request->name;
         $category->slug = str_slug($request->name);
         $category->save();
-        return response('created', Response::HTTP_CREATED);
+        return response(new CategoryResource($category), Response::HTTP_CREATED);
     }
 
     /**
@@ -67,8 +66,13 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        $category->update(['name'=>$request->name, 'slug'=>str_slug($request->name)]);
-        return response('Updated', Response::HTTP_ACCEPTED);
+        $category->update(
+            [
+                'name'=>$request->name,
+                'slug'=>str_slug($request->name)
+            ]
+        );
+        return response(new CategoryResource($category), Response::HTTP_ACCEPTED);
     }
 
     /**

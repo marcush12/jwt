@@ -9,7 +9,7 @@
 <body>
     <div id="app">
         <v-app>
-            <a-config></a-config>
+            <app-home></app-home>
         </v-app>
     </div>
     <script src="{{ asset('js/app.js') }}"></script>
